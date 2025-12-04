@@ -183,3 +183,45 @@ body {
   width: 14px;
   height: 14px;
 }
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: var(--biz-blue);
+}
+
+.modal-content button {
+  padding: 6px 16px;
+  border: 1px solid #999;
+  background: #f0f0f0;
+  cursor: pointer;
+  font-family: var(--font-main);
+}
+
+.modal-content button:hover {
+  background: #e0e0e0;
+}

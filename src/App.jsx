@@ -5,6 +5,8 @@ function App() {
   const [activeTab, setActiveTab] = useState('');
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [showConfigEditor, setShowConfigEditor] = useState(false);
+  const [configText, setConfigText] = useState('');
 
   const loadConfig = async () => {
     setLoading(true);
@@ -32,6 +34,39 @@ function App() {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
+  const handleEditConfig = () => {
+    setConfigText(JSON.stringify(config, null, 2));
+    setShowConfigEditor(true);
+  };
+
+  const handleApplyConfig = () => {
+    try {
+      const newConfig = JSON.parse(configText);
+      setConfig(newConfig);
+      setShowConfigEditor(false);
+      alert('設定を適用しました（一時的）');
+    } catch (error) {
+      alert('JSON解析エラー: ' + error.message);
+    }
+  };
+
+  const handleExportData = () => {
+    const dataStr = JSON.stringify(formData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `form_data_${new Date().getTime()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleClearForm = () => {
+    if (confirm('すべての入力をクリアしますか？')) {
+      setFormData({});
+    }
+  };
+
   if (loading) return <div style={{ padding: 20 }}>読み込み中...</div>;
   if (!config) return <div style={{ padding: 20 }}>設定ファイルが見つかりません。</div>;
 
@@ -44,19 +79,37 @@ function App() {
         <div className="field-row">
           <div className="field-label">証番号</div>
           <div className="field-input-container">
-            <input type="text" value="0646349" readOnly className="bg-yellow" />
+            <input
+              type="text"
+              data-field-id="証番号"
+              value={formData['証番号'] || '0646349'}
+              onChange={(e) => handleInputChange('証番号', e.target.value)}
+              className="bg-yellow"
+            />
           </div>
         </div>
         <div className="field-row">
           <div className="field-label">組合員番号</div>
           <div className="field-input-container">
-            <input type="text" value="1300570" readOnly className="bg-white" />
+            <input
+              type="text"
+              data-field-id="組合員番号"
+              value={formData['組合員番号'] || '1300570'}
+              onChange={(e) => handleInputChange('組合員番号', e.target.value)}
+              className="bg-white"
+            />
           </div>
         </div>
         <div className="field-row">
           <div className="field-label">氏名</div>
           <div className="field-input-container">
-            <input type="text" value="松山 英樹" className="bg-white" />
+            <input
+              type="text"
+              data-field-id="氏名"
+              value={formData['氏名'] || '松山 英樹'}
+              onChange={(e) => handleInputChange('氏名', e.target.value)}
+              className="bg-white"
+            />
           </div>
         </div>
       </div>
@@ -90,10 +143,37 @@ function App() {
         )}
       </div>
 
-      {/* Simple Footer for Reload */}
-      <div style={{ marginTop: 'auto', paddingTop: 10, display: 'flex', justifyContent: 'flex-end' }}>
-        <button onClick={loadConfig} style={{ padding: '4px 12px' }}>設定再読込</button>
+      {/* Control Buttons */}
+      <div style={{ marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+        <button onClick={handleEditConfig} style={{ padding: '4px 12px' }}>📝 設定編集</button>
+        <button onClick={loadConfig} style={{ padding: '4px 12px' }}>🔄 設定再読込</button>
+        <button onClick={handleExportData} style={{ padding: '4px 12px' }}>💾 データ出力</button>
+        <button onClick={handleClearForm} style={{ padding: '4px 12px' }}>🗑️ クリア</button>
       </div>
+
+      {/* Config Editor Modal */}
+      {showConfigEditor && (
+        <div className="modal-overlay" onClick={() => setShowConfigEditor(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>設定編集（一時的）</h3>
+            <textarea
+              value={configText}
+              onChange={(e) => setConfigText(e.target.value)}
+              style={{
+                width: '100%',
+                height: '400px',
+                fontFamily: 'monospace',
+                fontSize: '12px',
+                padding: '8px'
+              }}
+            />
+            <div style={{ marginTop: 10, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button onClick={() => setShowConfigEditor(false)}>キャンセル</button>
+              <button onClick={handleApplyConfig} style={{ fontWeight: 'bold' }}>適用</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -108,6 +188,7 @@ function LegacyField({ field, value, onChange }) {
       <div className="field-input-container">
         {field.type === 'select' && (
           <select
+            data-field-id={field.id}
             value={value}
             onChange={(e) => onChange(field.id, e.target.value)}
             className={isYellow ? 'bg-yellow' : 'bg-white'}
@@ -122,6 +203,7 @@ function LegacyField({ field, value, onChange }) {
         {field.type === 'text' && (
           <input
             type="text"
+            data-field-id={field.id}
             value={value}
             placeholder={field.placeholder}
             onChange={(e) => onChange(field.id, e.target.value)}
@@ -132,6 +214,7 @@ function LegacyField({ field, value, onChange }) {
         {field.type === 'date' && (
           <input
             type="date"
+            data-field-id={field.id}
             value={value}
             onChange={(e) => onChange(field.id, e.target.value)}
             className={isYellow ? 'bg-yellow' : 'bg-white'}
@@ -144,6 +227,7 @@ function LegacyField({ field, value, onChange }) {
               <label key={opt} className="radio-label">
                 <input
                   type="radio"
+                  data-field-id={field.id}
                   name={field.id}
                   value={opt}
                   checked={value === opt}
