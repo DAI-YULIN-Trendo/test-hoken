@@ -9,7 +9,7 @@ function App() {
   const loadConfig = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/form_config.json?t=' + new Date().getTime());
+      const response = await fetch(import.meta.env.BASE_URL + 'form_config.json?t=' + new Date().getTime());
       const data = await response.json();
       setConfig(data);
       if (data.tabs && data.tabs.length > 0) {
