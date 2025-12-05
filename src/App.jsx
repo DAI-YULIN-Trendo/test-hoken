@@ -145,6 +145,33 @@ function App() {
 
       {/* Control Buttons */}
       <div style={{ marginTop: 'auto', paddingTop: 10, display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+        <button
+          id="btn-complete"
+          onClick={() => {
+            // 簡易バリデーション: 必須項目が入力されているか確認
+            const requiredFields = ['証番号', '組合員番号', '氏名'];
+            const missing = requiredFields.filter(f => !formData[f]);
+
+            if (missing.length > 0) {
+              alert(`未入力の項目があります: ${missing.join(', ')}`);
+              return;
+            }
+
+            // 完了メッセージ
+            alert('入力が完了しました！見積もりファイルをダウンロードします。');
+
+            // 1.csv を自動ダウンロード
+            const link = document.createElement('a');
+            link.href = '/1.csv';
+            link.download = `estimate_${new Date().getTime()}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}
+          style={{ padding: '4px 12px', backgroundColor: '#00BFA5', color: 'white', border: 'none', fontWeight: 'bold' }}
+        >
+          ✅ 完了 (Runner用)
+        </button>
         <button onClick={handleEditConfig} style={{ padding: '4px 12px' }}>📝 設定編集</button>
         <button onClick={loadConfig} style={{ padding: '4px 12px' }}>🔄 設定再読込</button>
         <button onClick={handleExportData} style={{ padding: '4px 12px' }}>💾 データ出力</button>
